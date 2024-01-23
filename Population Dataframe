@@ -1,0 +1,47 @@
+#SET-UP 
+!pip install wbdata
+
+import pandas as pd
+import wbdata
+import numpy as np
+import re 
+import seaborn as sns
+import matplotlib.pyplot as plt
+from matplotlib import animation as ani
+import matplotlib.patches as mpatches
+
+
+wbdata.get_country()
+wbdata.get_source()
+
+
+SOURCE = 40 # "Population estimates and projections"
+indicators_40 = wbdata.get_indicator(source=SOURCE)
+indicators_40
+def population_dataframes(indicators):
+    """Returns a pandas DataFrame indexed by Region or Country and Year, 
+    with columns giving counts of people in different age-sex groups."""
+   
+    labels = {}
+    for i in range(len(indicators)):
+        col_id = indicators[i]['id']
+        col_name = indicators[i]['name']
+        labels[col_id] = col_name
+
+    def find_labels(indicators):
+      
+        # Filter through column ID strings to obtain relevant population data.
+        r = re.compile("(SP.POP).[\d]{2}[A-Z0-9]{2}.[MAFE]{2}$")
+        col_keys = list(filter(r.match, labels))
+
+        # Add total population column at the end of COL_KEYS
+        col_keys.append('SP.POP.TOTL')
+
+        labels_filtered = {}
+        for key, value in labels.items():
+            if key in col_keys:
+                labels_filtered[key] = value
+        return labels_filtered
+
+    df_labels = find_labels(indicators)
+    return wbdata.get_dataframe(df_labels)
